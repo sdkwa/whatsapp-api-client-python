@@ -14,12 +14,12 @@ client = SDKWA(
 )
 
 # Send a message
-response = client.sending.send_message(
+response = client.send_message(
     chat_id="1234567890@c.us",
     message="Hello from SDKWA! 👋"
 )
 
-print(f"Message sent with ID: {response.id_message}")
+print(f"Message sent with ID: {response['idMessage']}")
 ```
 
 ## Features

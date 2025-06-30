@@ -34,14 +34,14 @@ client = SDKWA(
 )
 
 # Send a text message
-response = client.sending.send_message(
+response = client.send_message(
     chat_id="1234567890@c.us",
     message="Hello from SDKWA! 👋"
 )
-print(f"Message sent with ID: {response.id_message}")
+print(f"Message sent with ID: {response['idMessage']}")
 
 # Send a file
-response = client.sending.send_file_by_url(
+response = client.send_file_by_url(
     chat_id="1234567890@c.us",
     url_file="https://example.com/image.jpg",
     file_name="image.jpg",
@@ -49,8 +49,8 @@ response = client.sending.send_file_by_url(
 )
 
 # Get account state
-state = client.account.get_state_instance()
-print(f"Account state: {state.state_instance}")
+state = client.get_state_instance()
+print(f"Account state: {state['stateInstance']}")
 ```
 
 ## API Reference
@@ -59,29 +59,33 @@ print(f"Account state: {state.state_instance}")
 
 ```python
 # Get account settings
-settings = client.account.get_settings()
+settings = client.get_settings()
 
 # Update settings
-client.account.set_settings({
+client.set_settings({
     "webhook_url": "https://your-webhook-url.com",
     "delay_send_messages_milliseconds": 1000
 })
 
 # Get QR code for authorization
-qr_data = client.account.get_qr_code()
+qr_data = client.get_qr()
+
+# Get account state
+state = client.get_state_instance()
+print(f"Account state: {state['stateInstance']}")
 
 # Reboot instance
-client.account.reboot()
+client.reboot()
 
 # Logout
-client.account.logout()
+client.logout()
 ```
 
 ### Sending Messages
 
 ```python
 # Text message
-client.sending.send_message(
+client.send_message(
     chat_id="1234567890@c.us",
     message="Hello World!",
     quoted_message_id="optional_message_id",  # Reply to message
@@ -89,7 +93,7 @@ client.sending.send_message(
 )
 
 # Send contact
-client.sending.send_contact(
+client.send_contact(
     chat_id="1234567890@c.us",
     contact={
         "phone_contact": 1234567890,
@@ -100,7 +104,7 @@ client.sending.send_contact(
 )
 
 # Send location
-client.sending.send_location(
+client.send_location(
     chat_id="1234567890@c.us",
     name_location="My Location",
     address="123 Main St",
@@ -113,7 +117,7 @@ client.sending.send_location(
 
 ```python
 # Send file by URL
-client.sending.send_file_by_url(
+client.send_file_by_url(
     chat_id="1234567890@c.us",
     url_file="https://example.com/document.pdf",
     file_name="document.pdf",
@@ -122,7 +126,7 @@ client.sending.send_file_by_url(
 
 # Upload and send file
 with open("image.jpg", "rb") as file:
-    client.sending.send_file_by_upload(
+    client.send_file_by_upload(
         chat_id="1234567890@c.us",
         file=file,
         file_name="image.jpg",
@@ -130,7 +134,7 @@ with open("image.jpg", "rb") as file:
     )
 
 # Download received file
-file_data = client.sending.download_file(
+file_data = client.download_file(
     chat_id="1234567890@c.us",
     id_message="MESSAGE_ID"
 )
@@ -140,51 +144,137 @@ file_data = client.sending.download_file(
 
 ```python
 # Get notifications
-notification = client.receiving.receive_notification()
+notification = client.receive_notification()
 if notification:
-    print(f"New notification: {notification.body}")
+    print(f"New notification: {notification}")
     # Process notification...
     
     # Delete notification after processing
-    client.receiving.delete_notification(notification.receipt_id)
+    client.delete_notification(notification['receiptId'])
 
 # Get chat history
-history = client.sending.get_chat_history(
+history = client.get_chat_history(
     chat_id="1234567890@c.us",
     count=50
 )
 ```
 
-### Group Management
+### Groups and Contacts
 
 ```python
 # Create group
-group = client.groups.create_group(
+group = client.create_group(
     group_name="My Group",
     chat_ids=["1234567890@c.us", "0987654321@c.us"]
 )
 
-# Add participants
-client.groups.add_group_participant(
-    group_id=group.chat_id,
+# Get group data
+group_info = client.get_group_data("GROUP_ID@g.us")
+
+# Add participants to group
+client.add_group_participant(
+    group_id="GROUP_ID@g.us",
+    participant_chat_id="1111111111@c.us"
+)
+
+# Remove participant from group
+client.remove_group_participant(
+    group_id="GROUP_ID@g.us",
+    participant_chat_id="1111111111@c.us"
+)
+
+# Set group admin
+client.set_group_admin(
+    group_id="GROUP_ID@g.us",
+    participant_chat_id="1111111111@c.us"
+)
+
+# Remove admin rights
+client.remove_admin(
+    group_id="GROUP_ID@g.us",
     participant_chat_id="1111111111@c.us"
 )
 
 # Update group name
-client.groups.update_group_name(
+client.update_group_name(
     group_id="GROUP_ID@g.us",
     group_name="New Group Name"
 )
 
+# Set group picture
+with open("group_pic.jpg", "rb") as file:
+    client.set_group_picture("GROUP_ID@g.us", file)
+
 # Leave group
-client.groups.leave_group("GROUP_ID@g.us")
+client.leave_group("GROUP_ID@g.us")
+
+# Get contacts
+contacts = client.get_contacts()
+
+# Get chats
+chats = client.get_chats()
+
+# Get contact info
+contact_info = client.get_contact_info("1234567890@c.us")
+
+# Check if number has WhatsApp
+has_whatsapp = client.check_whatsapp(1234567890)
+
+# Get avatar
+avatar = client.get_avatar("1234567890@c.us")
+
+# Set profile picture
+with open("profile_pic.jpg", "rb") as file:
+    client.set_profile_picture(file)
+```
+
+### Chat Management
+
+```python
+# Mark chat as read
+client.read_chat("1234567890@c.us")
+
+# Mark specific message as read
+client.read_chat("1234567890@c.us", id_message="MESSAGE_ID")
+
+# Archive chat
+client.archive_chat("1234567890@c.us")
+
+# Unarchive chat
+client.unarchive_chat("1234567890@c.us")
+
+# Delete message
+client.delete_message("1234567890@c.us", "MESSAGE_ID")
+```
+
+### Queue Management
+
+```python
+# Show messages in queue
+queue = client.show_messages_queue()
+
+# Clear messages queue
+client.clear_messages_queue()
+```
+
+### Message History
+
+```python
+# Get last outgoing messages (last 24 hours by default)
+outgoing = client.last_outgoing_messages()
+
+# Get last outgoing messages from last 60 minutes
+outgoing = client.last_outgoing_messages(minutes=60)
+
+# Get last incoming messages
+incoming = client.last_incoming_messages()
 ```
 
 ## Webhook Handling
 
 ```python
 from flask import Flask, request
-from sdkwa.webhook import WebhookHandler, WebhookType
+from sdkwa import WebhookHandler, WebhookType
 
 app = Flask(__name__)
 webhook_handler = WebhookHandler()
@@ -192,13 +282,26 @@ webhook_handler = WebhookHandler()
 # Register event handlers
 @webhook_handler.on(WebhookType.INCOMING_MESSAGE_RECEIVED)
 def handle_message(notification):
-    sender = notification.sender_data.chat_id
-    message = notification.message_data.text_message_data.text_message
-    print(f"Received message from {sender}: {message}")
+    """Handle incoming message notifications."""
+    sender_data = notification.get('senderData', {})
+    message_data = notification.get('messageData', {})
+    
+    sender = sender_data.get('chatId', 'Unknown')
+    sender_name = sender_data.get('senderName', 'Unknown')
+    message_type = message_data.get('typeMessage', 'unknown')
+    
+    print(f"📥 Incoming message from {sender_name} ({sender})")
+    
+    if message_type == 'textMessage':
+        text = message_data.get('textMessageData', {}).get('textMessage', '')
+        print(f"Message: {text}")
 
 @webhook_handler.on(WebhookType.OUTGOING_MESSAGE_STATUS)
 def handle_status(notification):
-    print(f"Message status: {notification.status}")
+    """Handle outgoing message status notifications."""
+    status = notification.get('status', 'unknown')
+    id_message = notification.get('idMessage', '')
+    print(f"📤 Message {id_message} status: {status}")
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -236,10 +339,10 @@ client = SDKWA(
 ## Error Handling
 
 ```python
-from sdkwa.exceptions import SDKWAError, AuthenticationError, ValidationError
+from sdkwa import APIError, AuthenticationError, ValidationError
 
 try:
-    response = client.sending.send_message(
+    response = client.send_message(
         chat_id="invalid_chat_id",
         message="Test message"
     )
@@ -247,7 +350,7 @@ except AuthenticationError:
     print("Invalid credentials")
 except ValidationError as e:
     print(f"Validation error: {e}")
-except SDKWAError as e:
+except APIError as e:
     print(f"API error: {e}")
 ```
 
@@ -261,17 +364,19 @@ git clone https://github.com/sdkwa/whatsapp-api-client-python.git
 cd whatsapp-api-client-python
 
 # Install in development mode
-pip install -e ".[dev]"
-
-# Install pre-commit hooks
-pre-commit install
+pip install -e .
 
 # Format code
-black .
-isort .
+python scripts/dev.py format
 
-# Type checking
-mypy sdkwa
+# Clean build artifacts
+python scripts/dev.py clean
+
+# Build package
+python scripts/dev.py build
+
+# Publish to PyPI (requires API token)
+python scripts/dev.py publish
 ```
 
 ## Contributing
