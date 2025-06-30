@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdkwa-whatsapp-api"
+version = "1.0.0"
+description = "Python SDK for SDKWA WhatsApp HTTP API"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "SDKWA Community", email = "support@sdkwa.pro"}
+]
+keywords = ["whatsapp", "sdkwa", "api", "python", "sdk"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Communications :: Chat",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "requests>=2.25.0",
+    "typing-extensions>=4.0.0; python_version<'3.10'",
+]
+
+[project.urls]
+Homepage = "https://sdkwa.pro"
+Documentation = "https://docs.sdkwa.pro"
+Repository = "https://github.com/sdkwa/whatsapp-api-client-python"
+Issues = "https://github.com/sdkwa/whatsapp-api-client-python/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sdkwa*"]

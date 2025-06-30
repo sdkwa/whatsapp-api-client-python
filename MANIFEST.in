@@ -1,0 +1,10 @@
+include README.md
+include LICENSE
+include CONTRIBUTING.md
+include CHANGELOG.md
+include requirements.txt
+include .env.example
+recursive-include examples *.py
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude .git*
