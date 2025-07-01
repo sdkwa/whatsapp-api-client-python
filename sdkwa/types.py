@@ -1,7 +1,11 @@
 """Type definitions for SDKWA API."""
 
 from typing import Any, Dict, List, Optional, Union
-from typing_extensions import TypedDict
+
+try:
+    from typing_extensions import TypedDict
+except ImportError:
+    from typing import TypedDict
 
 
 # Common types
