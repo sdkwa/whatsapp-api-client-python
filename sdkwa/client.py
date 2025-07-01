@@ -26,7 +26,7 @@ class SDKWA:
         user_id: Optional[str] = None,
         user_token: Optional[str] = None,
         timeout: int = 30,
-        verify_ssl: bool = True,
+        verify_ssl: bool = False,
     ) -> None:
         """Initialize SDKWA client.
         
