@@ -35,7 +35,7 @@ print(f"Message sent with ID: {response['idMessage']}")
 ## Installation
 
 ```bash
-pip install sdkwa-whatsapp-api
+pip install sdkwa-whatsapp-api-client
 ```
 
 ## Documentation

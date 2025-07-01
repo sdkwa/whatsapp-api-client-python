@@ -1,7 +1,7 @@
-# SDKWA WhatsApp API - Python SDK
+# SDKWA WhatsApp API Client - Python SDK
 
-[![PyPI version](https://badge.fury.io/py/sdkwa-whatsapp-api.svg)](https://badge.fury.io/py/sdkwa-whatsapp-api)
-[![Python](https://img.shields.io/pypi/pyversions/sdkwa-whatsapp-api.svg)](https://pypi.org/project/sdkwa-whatsapp-api/)
+[![PyPI version](https://badge.fury.io/py/sdkwa-whatsapp-api-client.svg)](https://badge.fury.io/py/sdkwa-whatsapp-api-client)
+[![Python](https://img.shields.io/pypi/pyversions/sdkwa-whatsapp-api-client.svg)](https://pypi.org/project/sdkwa-whatsapp-api-client/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Python SDK for the SDKWA WhatsApp HTTP API. Send messages, files, and manage WhatsApp accounts programmatically.
@@ -19,7 +19,7 @@ Python SDK for the SDKWA WhatsApp HTTP API. Send messages, files, and manage Wha
 ## Installation
 
 ```bash
-pip install sdkwa-whatsapp-api
+pip install sdkwa-whatsapp-api-client
 ```
 
 ## Quick Start
