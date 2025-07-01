@@ -63,8 +63,8 @@ settings = client.get_settings()
 
 # Update settings
 client.set_settings({
-    "webhook_url": "https://your-webhook-url.com",
-    "delay_send_messages_milliseconds": 1000
+    "webhookUrl": "https://your-webhook-url.com",
+    "delaySendMessagesMilliseconds": 1000
 })
 
 # Get QR code for authorization
@@ -96,9 +96,9 @@ client.send_message(
 client.send_contact(
     chat_id="1234567890@c.us",
     contact={
-        "phone_contact": 1234567890,
-        "first_name": "John",
-        "last_name": "Doe",
+        "phoneContact": 1234567890,
+        "firstName": "John",
+        "lastName": "Doe",
         "company": "Example Corp"
     }
 )

@@ -48,9 +48,9 @@ def main():
         contact_response = client.send_contact(
             chat_id=personal_chat_id,
             contact={
-                "phone_contact": 1234567890,
-                "first_name": "John",
-                "last_name": "Doe",
+                "phoneContact": 1234567890,
+                "firstName": "John",
+                "lastName": "Doe",
                 "company": "SDKWA Demo"
             }
         )

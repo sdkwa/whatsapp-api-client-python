@@ -15,17 +15,21 @@ ReceiptId = int
 
 
 class Contact(TypedDict, total=False):
-    """Contact information."""
-    phone_contact: int
-    first_name: Optional[str]
-    middle_name: Optional[str]  
-    last_name: Optional[str]
+    """Contact information.
+    
+    phoneContact is required according to the API spec.
+    At least one of firstName, middleName, lastName, or company must be provided.
+    """
+    phoneContact: int  # Required
+    firstName: Optional[str]
+    middleName: Optional[str]  
+    lastName: Optional[str]
     company: Optional[str]
 
 
 class Location(TypedDict):
     """Location information."""
-    name_location: Optional[str]
+    nameLocation: Optional[str]
     address: Optional[str]
     latitude: float
     longitude: float
@@ -34,90 +38,90 @@ class Location(TypedDict):
 # Request types
 class SendMessageRequest(TypedDict, total=False):
     """Send message request parameters."""
-    chat_id: ChatId
+    chatId: ChatId
     message: str
-    quoted_message_id: Optional[MessageId]
-    archive_chat: Optional[bool]
-    link_preview: Optional[bool]
+    quotedMessageId: Optional[MessageId]
+    archiveChat: Optional[bool]
+    linkPreview: Optional[bool]
 
 
 class SendContactRequest(TypedDict, total=False):
     """Send contact request parameters."""
-    chat_id: ChatId
+    chatId: ChatId
     contact: Contact
-    quoted_message_id: Optional[MessageId]
+    quotedMessageId: Optional[MessageId]
 
 
 class SendFileByUrlRequest(TypedDict, total=False):
     """Send file by URL request parameters."""
-    chat_id: ChatId
-    url_file: str
-    file_name: str
+    chatId: ChatId
+    urlFile: str
+    fileName: str
     caption: Optional[str]
-    quoted_message_id: Optional[MessageId]
-    archive_chat: Optional[bool]
+    quotedMessageId: Optional[MessageId]
+    archiveChat: Optional[bool]
 
 
 class SendLocationRequest(TypedDict, total=False):
     """Send location request parameters."""
-    chat_id: ChatId
-    name_location: Optional[str]
+    chatId: ChatId
+    nameLocation: Optional[str]
     address: Optional[str]
     latitude: float
     longitude: float
-    quoted_message_id: Optional[MessageId]
+    quotedMessageId: Optional[MessageId]
 
 
 class GetChatHistoryRequest(TypedDict, total=False):
     """Get chat history request parameters."""
-    chat_id: ChatId
+    chatId: ChatId
     count: Optional[int]
 
 
 class DownloadFileRequest(TypedDict):
     """Download file request parameters."""
-    chat_id: ChatId
+    chatId: ChatId
 
 
 class CreateGroupRequest(TypedDict):
     """Create group request parameters."""
-    group_name: str
-    chat_ids: List[ChatId]
+    groupName: str
+    chatIds: List[ChatId]
 
 
 class UpdateGroupNameRequest(TypedDict):
     """Update group name request parameters."""
-    group_id: ChatId
-    group_name: str
+    groupId: ChatId
+    groupName: str
 
 
 class AddGroupParticipantRequest(TypedDict):
     """Add group participant request parameters."""
-    group_id: ChatId
-    participant_chat_id: ChatId
+    groupId: ChatId
+    participantChatId: ChatId
 
 
 class RemoveGroupParticipantRequest(TypedDict):
     """Remove group participant request parameters."""
-    group_id: ChatId
-    participant_chat_id: ChatId
+    groupId: ChatId
+    participantChatId: ChatId
 
 
 class SetGroupAdminRequest(TypedDict):
     """Set group admin request parameters."""
-    group_id: ChatId
-    participant_chat_id: ChatId
+    groupId: ChatId
+    participantChatId: ChatId
 
 
 class RemoveAdminRequest(TypedDict):
     """Remove admin request parameters."""
-    group_id: ChatId
-    participant_chat_id: ChatId
+    groupId: ChatId
+    participantChatId: ChatId
 
 
 class GetAuthorizationCodeRequest(TypedDict):
     """Get authorization code request parameters."""
-    phone_number: int
+    phoneNumber: int
 
 
 class SendRegistrationCodeRequest(TypedDict):
@@ -127,54 +131,54 @@ class SendRegistrationCodeRequest(TypedDict):
 
 class RequestRegistrationCodeRequest(TypedDict):
     """Request registration code parameters."""
-    phone_number: int
+    phoneNumber: int
     method: str  # "sms" or "voice"
 
 
 # Response types
 class SendMessageResponse(TypedDict):
     """Send message response."""
-    id_message: MessageId
+    idMessage: MessageId
 
 
 class SendContactResponse(TypedDict):
     """Send contact response."""
-    id_message: MessageId
+    idMessage: MessageId
 
 
 class SendFileResponse(TypedDict):
     """Send file response."""
-    id_message: MessageId
+    idMessage: MessageId
 
 
 class SendLocationResponse(TypedDict):
     """Send location response."""
-    id_message: MessageId
+    idMessage: MessageId
 
 
 class UploadFileResponse(TypedDict):
     """Upload file response."""
-    url_file: str
+    urlFile: str
 
 
 class GetStateInstanceResponse(TypedDict):
     """Get state instance response."""
-    state_instance: str
+    stateInstance: str
 
 
 class SetSettingsResponse(TypedDict):
     """Set settings response."""
-    save_settings: bool
+    saveSettings: bool
 
 
 class RebootResponse(TypedDict):
     """Reboot response."""
-    is_reboot: bool
+    isReboot: bool
 
 
 class LogoutResponse(TypedDict):
     """Logout response."""
-    is_logout: bool
+    isLogout: bool
 
 
 class QRCodeResponse(TypedDict):
@@ -196,45 +200,45 @@ class DeleteNotificationResponse(TypedDict):
 
 class CreateGroupResponse(TypedDict):
     """Create group response."""
-    chat_id: ChatId
-    group_invite_link: str
+    chatId: ChatId
+    groupInviteLink: str
 
 
 class GetGroupDataResponse(TypedDict):
     """Get group data response."""
-    group_name: str
-    chat_id: ChatId
+    groupName: str
+    chatId: ChatId
     owner: str
     creation: int
     participants: List[Dict[str, Any]]
-    group_invite_link: str
+    groupInviteLink: str
 
 
 # Notification types
 class NotificationBody(TypedDict, total=False):
     """Base notification body."""
-    type_webhook: str
-    instance_data: Dict[str, Any]
+    typeWebhook: str
+    instanceData: Dict[str, Any]
     timestamp: int
 
 
 class IncomingMessageNotification(NotificationBody):
     """Incoming message notification."""
-    id_message: MessageId
-    sender_data: Dict[str, Any]
-    message_data: Dict[str, Any]
+    idMessage: MessageId
+    senderData: Dict[str, Any]
+    messageData: Dict[str, Any]
 
 
 class OutgoingMessageStatusNotification(NotificationBody):
     """Outgoing message status notification."""
-    id_message: MessageId
+    idMessage: MessageId
     status: str
     timestamp: int
 
 
 class Notification(TypedDict):
     """Notification wrapper."""
-    receipt_id: ReceiptId
+    receiptId: ReceiptId
     body: NotificationBody
 
 
@@ -242,22 +246,22 @@ class Notification(TypedDict):
 class AccountSettings(TypedDict, total=False):
     """Account settings."""
     wid: Optional[str]
-    country_instance: Optional[str]
-    type_account: Optional[str]
-    webhook_url: Optional[str]
-    webhook_url_token: Optional[str]
-    delay_send_messages_milliseconds: Optional[int]
-    delay_send_messages_max_ms: Optional[int]
-    mark_incoming_messages_readed: Optional[str]
-    mark_incoming_messages_readed_on_reply: Optional[str]
-    outgoing_webhook: Optional[str]
-    outgoing_message_webhook: Optional[str]
-    outgoing_api_message_webhook: Optional[str]
-    state_webhook: Optional[str]
-    incoming_webhook: Optional[str]
-    device_webhook: Optional[str]
-    status_instance_webhook: Optional[str]
-    keep_online_status: Optional[str]
-    proxy_instance: Optional[str]
-    send_from_utc: Optional[str]
-    send_to_utc: Optional[str]
+    countryInstance: Optional[str]
+    typeAccount: Optional[str]
+    webhookUrl: Optional[str]
+    webhookUrlToken: Optional[str]
+    delaySendMessagesMilliseconds: Optional[int]
+    delaySendMessagesMaxMs: Optional[int]
+    markIncomingMessagesReaded: Optional[str]
+    markIncomingMessagesReadedOnReply: Optional[str]
+    outgoingWebhook: Optional[str]
+    outgoingMessageWebhook: Optional[str]
+    outgoingAPIMessageWebhook: Optional[str]
+    stateWebhook: Optional[str]
+    incomingWebhook: Optional[str]
+    deviceWebhook: Optional[str]
+    statusInstanceWebhook: Optional[str]
+    keepOnlineStatus: Optional[str]
+    proxyInstance: Optional[str]
+    sendFromUTC: Optional[str]
+    sendToUTC: Optional[str]
