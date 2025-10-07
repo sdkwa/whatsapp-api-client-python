@@ -16,7 +16,7 @@ from .webhook import WebhookHandler
 
 
 class SDKWA:
-    """Main SDKWA WhatsApp API client."""
+    """Main SDKWA API client for WhatsApp and Telegram."""
 
     def __init__(
         self,
@@ -40,7 +40,7 @@ class SDKWA:
             verify_ssl: Whether to verify SSL certificates
             
         Raises:
-            ValueError: If required parameters are missing
+            ValueError: If required parameters are missing or invalid
         """
         # Get values from environment if not provided
         self.id_instance = id_instance or os.getenv("SDKWA_ID_INSTANCE")
@@ -50,6 +50,7 @@ class SDKWA:
             or os.getenv("SDKWA_API_HOST") 
             or "https://api.sdkwa.pro"
         )
+        self.default_messenger = "whatsapp"  # Default messenger is always WhatsApp
         self.user_id = user_id or os.getenv("SDKWA_USER_ID")
         self.user_token = user_token or os.getenv("SDKWA_USER_TOKEN")
         
@@ -82,7 +83,6 @@ class SDKWA:
         # Set up HTTP client
         self.timeout = timeout
         self.verify_ssl = verify_ssl
-        self.base_path = f"/whatsapp/{self.id_instance}"
         
         # Set up default headers
         self.headers = {
@@ -105,11 +105,29 @@ class SDKWA:
         # Initialize webhook handler
         self.webhook_handler = WebhookHandler()
 
-    def _build_url(self, path: str) -> str:
-        """Build full URL from path."""
+    def _build_url(self, path: str, messenger: Optional[str] = None) -> str:
+        """Build full URL from path.
+        
+        Args:
+            path: API endpoint path
+            messenger: Messenger type ('whatsapp' or 'telegram'). If None, uses default_messenger
+            
+        Returns:
+            Full API URL
+        """
+        messenger_type = messenger or self.default_messenger
+        
+        # Validate messenger type
+        if messenger_type not in ("whatsapp", "telegram"):
+            raise ValueError(
+                f"Invalid messenger type '{messenger_type}'. Must be 'whatsapp' or 'telegram'."
+            )
+        
         if not path.startswith("/"):
             path = "/" + path
-        return f"{self.api_host}{self.base_path}{path}"
+        
+        base_path = f"/{messenger_type}/{self.id_instance}"
+        return f"{self.api_host}{base_path}{path}"
 
     def _handle_response(self, response: requests.Response) -> Any:
         """Handle HTTP response and raise appropriate exceptions."""
@@ -157,6 +175,7 @@ class SDKWA:
         data: Optional[Union[str, bytes]] = None,
         files: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
+        messenger: Optional[str] = None,
         **kwargs: Any,
     ) -> Any:
         """Make HTTP request to API.
@@ -169,6 +188,7 @@ class SDKWA:
             data: Raw request body
             files: Files for multipart upload
             headers: Additional headers
+            messenger: Messenger type ('whatsapp' or 'telegram'). If None, uses default_messenger
             **kwargs: Additional arguments for requests
             
         Returns:
@@ -180,7 +200,7 @@ class SDKWA:
             ValidationError: On validation errors
             APIError: On other API errors
         """
-        url = self._build_url(path)
+        url = self._build_url(path, messenger=messenger)
         
         # Merge headers
         request_headers = self.headers.copy()
@@ -208,45 +228,45 @@ class SDKWA:
             raise NetworkError(f"Network error: {e}")
 
     # --- Account methods ---
-    def get_settings(self) -> Dict[str, Any]:
+    def get_settings(self, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Get current account settings."""
-        return self._request("GET", "/getSettings")
+        return self._request("GET", "/getSettings", messenger=messenger)
 
-    def set_settings(self, settings: Dict[str, Any]) -> Dict[str, bool]:
+    def set_settings(self, settings: Dict[str, Any], messenger: Optional[str] = None) -> Dict[str, bool]:
         """Set account settings."""
-        return self._request("POST", "/setSettings", json_data=settings)
+        return self._request("POST", "/setSettings", json_data=settings, messenger=messenger)
 
-    def get_state_instance(self) -> Dict[str, str]:
+    def get_state_instance(self, messenger: Optional[str] = None) -> Dict[str, str]:
         """Get account authorization state."""
-        return self._request("GET", "/getStateInstance")
+        return self._request("GET", "/getStateInstance", messenger=messenger)
 
-    def get_warming_phone_status(self) -> Dict[str, Any]:
+    def get_warming_phone_status(self, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Get account warming status."""
-        return self._request("GET", "/getWarmingPhoneStatus")
+        return self._request("GET", "/getWarmingPhoneStatus", messenger=messenger)
 
-    def reboot(self) -> Dict[str, bool]:
-        """Reboot the WhatsApp account."""
-        return self._request("GET", "/reboot")
+    def reboot(self, messenger: Optional[str] = None) -> Dict[str, bool]:
+        """Reboot the account."""
+        return self._request("GET", "/reboot", messenger=messenger)
 
-    def logout(self) -> Dict[str, bool]:
-        """Logout the WhatsApp account."""
-        return self._request("GET", "/logout")
+    def logout(self, messenger: Optional[str] = None) -> Dict[str, bool]:
+        """Logout the account."""
+        return self._request("GET", "/logout", messenger=messenger)
 
-    def get_qr(self) -> Dict[str, str]:
+    def get_qr(self, messenger: Optional[str] = None) -> Dict[str, str]:
         """Get QR code for account authorization."""
-        return self._request("GET", "/qr")
+        return self._request("GET", "/qr", messenger=messenger)
 
-    def get_authorization_code(self, phone_number: int) -> Dict[str, Any]:
+    def get_authorization_code(self, phone_number: int, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Get authorization code for phone number linking."""
-        return self._request("POST", "/getAuthorizationCode", json_data={"phoneNumber": phone_number})
+        return self._request("POST", "/getAuthorizationCode", json_data={"phoneNumber": phone_number}, messenger=messenger)
 
-    def request_registration_code(self, phone_number: int, method: str = "sms") -> Dict[str, Any]:
+    def request_registration_code(self, phone_number: int, method: str = "sms", messenger: Optional[str] = None) -> Dict[str, Any]:
         """Request registration code via SMS or voice call."""
-        return self._request("POST", "/requestRegistrationCode", json_data={"phoneNumber": phone_number, "method": method})
+        return self._request("POST", "/requestRegistrationCode", json_data={"phoneNumber": phone_number, "method": method}, messenger=messenger)
 
-    def send_registration_code(self, code: str) -> Dict[str, Any]:
+    def send_registration_code(self, code: str, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Send registration code received via SMS or call."""
-        return self._request("POST", "/sendRegistrationCode", json_data={"code": code})
+        return self._request("POST", "/sendRegistrationCode", json_data={"code": code}, messenger=messenger)
 
     # --- Sending methods ---
     def send_message(
@@ -256,6 +276,7 @@ class SDKWA:
         quoted_message_id: Optional[str] = None,
         archive_chat: Optional[bool] = None,
         link_preview: Optional[bool] = None,
+        messenger: Optional[str] = None,
     ) -> Dict[str, str]:
         """Send a text message."""
         request_data = {"chatId": chat_id, "message": message}
@@ -267,13 +288,14 @@ class SDKWA:
         if link_preview is not None:
             request_data["linkPreview"] = link_preview
             
-        return self._request("POST", "/sendMessage", json_data=request_data)
+        return self._request("POST", "/sendMessage", json_data=request_data, messenger=messenger)
 
     def send_contact(
         self,
         chat_id: str,
         contact: Dict[str, Any],
         quoted_message_id: Optional[str] = None,
+        messenger: Optional[str] = None,
     ) -> Dict[str, str]:
         """Send a contact card."""
         request_data = {"chatId": chat_id, "contact": contact}
@@ -281,7 +303,7 @@ class SDKWA:
         if quoted_message_id:
             request_data["quotedMessageId"] = quoted_message_id
             
-        return self._request("POST", "/sendContact", json_data=request_data)
+        return self._request("POST", "/sendContact", json_data=request_data, messenger=messenger)
 
     def send_file_by_upload(
         self,
@@ -290,6 +312,7 @@ class SDKWA:
         file_name: str,
         caption: Optional[str] = None,
         quoted_message_id: Optional[str] = None,
+        messenger: Optional[str] = None,
     ) -> Dict[str, str]:
         """Send a file by uploading it."""
         files = {"file": (file_name, file)}
@@ -300,7 +323,7 @@ class SDKWA:
         if quoted_message_id:
             data["quotedMessageId"] = quoted_message_id
             
-        return self._request("POST", "/sendFileByUpload", data=data, files=files)
+        return self._request("POST", "/sendFileByUpload", data=data, files=files, messenger=messenger)
 
     def send_file_by_url(
         self,
@@ -310,6 +333,7 @@ class SDKWA:
         caption: Optional[str] = None,
         quoted_message_id: Optional[str] = None,
         archive_chat: Optional[bool] = None,
+        messenger: Optional[str] = None,
     ) -> Dict[str, str]:
         """Send a file by URL."""
         request_data = {"chatId": chat_id, "urlFile": url_file, "fileName": file_name}
@@ -321,7 +345,7 @@ class SDKWA:
         if archive_chat is not None:
             request_data["archiveChat"] = archive_chat
             
-        return self._request("POST", "/sendFileByUrl", json_data=request_data)
+        return self._request("POST", "/sendFileByUrl", json_data=request_data, messenger=messenger)
 
     def send_location(
         self,
@@ -331,6 +355,7 @@ class SDKWA:
         name_location: Optional[str] = None,
         address: Optional[str] = None,
         quoted_message_id: Optional[str] = None,
+        messenger: Optional[str] = None,
     ) -> Dict[str, str]:
         """Send a location."""
         request_data = {"chatId": chat_id, "latitude": latitude, "longitude": longitude}
@@ -342,154 +367,155 @@ class SDKWA:
         if quoted_message_id:
             request_data["quotedMessageId"] = quoted_message_id
             
-        return self._request("POST", "/sendLocation", json_data=request_data)
+        return self._request("POST", "/sendLocation", json_data=request_data, messenger=messenger)
 
-    def upload_file(self, file: Union[BinaryIO, bytes]) -> Dict[str, str]:
+    def upload_file(self, file: Union[BinaryIO, bytes], messenger: Optional[str] = None) -> Dict[str, str]:
         """Upload a file to storage for later sending."""
         return self._request(
             "POST",
             "/uploadFile",
             data=file,
             headers={"Content-Type": "application/octet-stream"},
+            messenger=messenger,
         )
 
-    def get_chat_history(self, chat_id: str, count: Optional[int] = None) -> List[Dict[str, Any]]:
+    def get_chat_history(self, chat_id: str, count: Optional[int] = None, messenger: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get chat message history."""
         request_data = {"chatId": chat_id}
         if count:
             request_data["count"] = count
-        return self._request("POST", "/getChatHistory", json_data=request_data)
+        return self._request("POST", "/getChatHistory", json_data=request_data, messenger=messenger)
 
-    def download_file(self, chat_id: str, id_message: str) -> bytes:
+    def download_file(self, chat_id: str, id_message: str, messenger: Optional[str] = None) -> bytes:
         """Download a file from a message."""
         request_data = {"chatId": chat_id}
-        return self._request("POST", f"/downloadFile/{id_message}", json_data=request_data)
+        return self._request("POST", f"/downloadFile/{id_message}", json_data=request_data, messenger=messenger)
 
     # --- Receiving methods ---
-    def receive_notification(self) -> Optional[Dict[str, Any]]:
+    def receive_notification(self, messenger: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Receive a single incoming notification."""
-        response = self._request("GET", "/receiveNotification")
+        response = self._request("GET", "/receiveNotification", messenger=messenger)
         return response if response else None
 
-    def delete_notification(self, receipt_id: int) -> Dict[str, bool]:
+    def delete_notification(self, receipt_id: int, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Delete a processed notification from the queue."""
-        return self._request("DELETE", f"/deleteNotification/{receipt_id}")
+        return self._request("DELETE", f"/deleteNotification/{receipt_id}", messenger=messenger)
 
     # --- Contact methods ---
-    def get_contacts(self) -> List[Dict[str, Any]]:
+    def get_contacts(self, messenger: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get contacts list."""
-        return self._request("GET", "/getContacts")
+        return self._request("GET", "/getContacts", messenger=messenger)
 
-    def get_chats(self) -> List[Dict[str, Any]]:
+    def get_chats(self, messenger: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get chats list."""
-        return self._request("GET", "/getChats")
+        return self._request("GET", "/getChats", messenger=messenger)
 
-    def get_contact_info(self, chat_id: str) -> Dict[str, Any]:
+    def get_contact_info(self, chat_id: str, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Get contact information."""
-        return self._request("POST", "/getContactInfo", json_data={"chatId": chat_id})
+        return self._request("POST", "/getContactInfo", json_data={"chatId": chat_id}, messenger=messenger)
 
-    def check_whatsapp(self, phone_number: int) -> Dict[str, bool]:
+    def check_whatsapp(self, phone_number: int, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Check if phone number has WhatsApp."""
-        return self._request("POST", "/checkWhatsapp", json_data={"phoneNumber": phone_number})
+        return self._request("POST", "/checkWhatsapp", json_data={"phoneNumber": phone_number}, messenger=messenger)
 
-    def get_avatar(self, chat_id: str) -> Dict[str, Any]:
+    def get_avatar(self, chat_id: str, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Get contact/group avatar."""
-        return self._request("POST", "/getAvatar", json_data={"chatId": chat_id})
+        return self._request("POST", "/getAvatar", json_data={"chatId": chat_id}, messenger=messenger)
 
     # --- Profile methods ---
-    def set_profile_picture(self, file: Union[BinaryIO, bytes]) -> Dict[str, Any]:
+    def set_profile_picture(self, file: Union[BinaryIO, bytes], messenger: Optional[str] = None) -> Dict[str, Any]:
         """Set profile picture."""
         files = {"file": file}
-        return self._request("POST", "/setProfilePicture", files=files)
+        return self._request("POST", "/setProfilePicture", files=files, messenger=messenger)
 
-    def set_profile_name(self, name: str) -> Dict[str, Any]:
+    def set_profile_name(self, name: str, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Set profile name."""
-        return self._request("POST", "/setProfileName", json_data={"name": name})
+        return self._request("POST", "/setProfileName", json_data={"name": name}, messenger=messenger)
 
-    def set_profile_status(self, status: str) -> Dict[str, Any]:
+    def set_profile_status(self, status: str, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Set profile status."""
-        return self._request("POST", "/setProfileStatus", json_data={"status": status})
+        return self._request("POST", "/setProfileStatus", json_data={"status": status}, messenger=messenger)
 
     # --- Group methods ---
-    def create_group(self, group_name: str, chat_ids: List[str]) -> Dict[str, Any]:
+    def create_group(self, group_name: str, chat_ids: List[str], messenger: Optional[str] = None) -> Dict[str, Any]:
         """Create a new group chat."""
-        return self._request("POST", "/createGroup", json_data={"groupName": group_name, "chatIds": chat_ids})
+        return self._request("POST", "/createGroup", json_data={"groupName": group_name, "chatIds": chat_ids}, messenger=messenger)
 
-    def update_group_name(self, group_id: str, group_name: str) -> Dict[str, bool]:
+    def update_group_name(self, group_id: str, group_name: str, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Update group name."""
-        return self._request("POST", "/updateGroupName", json_data={"groupId": group_id, "groupName": group_name})
+        return self._request("POST", "/updateGroupName", json_data={"groupId": group_id, "groupName": group_name}, messenger=messenger)
 
-    def get_group_data(self, group_id: str) -> Dict[str, Any]:
+    def get_group_data(self, group_id: str, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Get group chat information."""
-        return self._request("POST", "/getGroupData", json_data={"groupId": group_id})
+        return self._request("POST", "/getGroupData", json_data={"groupId": group_id}, messenger=messenger)
 
-    def add_group_participant(self, group_id: str, participant_chat_id: str) -> Dict[str, bool]:
+    def add_group_participant(self, group_id: str, participant_chat_id: str, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Add participant to group."""
-        return self._request("POST", "/addGroupParticipant", json_data={"groupId": group_id, "participantChatId": participant_chat_id})
+        return self._request("POST", "/addGroupParticipant", json_data={"groupId": group_id, "participantChatId": participant_chat_id}, messenger=messenger)
 
-    def remove_group_participant(self, group_id: str, participant_chat_id: str) -> Dict[str, bool]:
+    def remove_group_participant(self, group_id: str, participant_chat_id: str, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Remove participant from group."""
-        return self._request("POST", "/removeGroupParticipant", json_data={"groupId": group_id, "participantChatId": participant_chat_id})
+        return self._request("POST", "/removeGroupParticipant", json_data={"groupId": group_id, "participantChatId": participant_chat_id}, messenger=messenger)
 
-    def set_group_admin(self, group_id: str, participant_chat_id: str) -> Dict[str, bool]:
+    def set_group_admin(self, group_id: str, participant_chat_id: str, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Set participant as group admin."""
-        return self._request("POST", "/setGroupAdmin", json_data={"groupId": group_id, "participantChatId": participant_chat_id})
+        return self._request("POST", "/setGroupAdmin", json_data={"groupId": group_id, "participantChatId": participant_chat_id}, messenger=messenger)
 
-    def remove_admin(self, group_id: str, participant_chat_id: str) -> Dict[str, bool]:
+    def remove_admin(self, group_id: str, participant_chat_id: str, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Remove admin rights from participant."""
-        return self._request("POST", "/removeAdmin", json_data={"groupId": group_id, "participantChatId": participant_chat_id})
+        return self._request("POST", "/removeAdmin", json_data={"groupId": group_id, "participantChatId": participant_chat_id}, messenger=messenger)
 
-    def leave_group(self, group_id: str) -> Dict[str, bool]:
+    def leave_group(self, group_id: str, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Leave a group chat."""
-        return self._request("POST", "/leaveGroup", json_data={"groupId": group_id})
+        return self._request("POST", "/leaveGroup", json_data={"groupId": group_id}, messenger=messenger)
 
-    def set_group_picture(self, group_id: str, file: Union[BinaryIO, bytes]) -> Dict[str, Any]:
+    def set_group_picture(self, group_id: str, file: Union[BinaryIO, bytes], messenger: Optional[str] = None) -> Dict[str, Any]:
         """Set group picture."""
         files = {"file": file}
         data = {"groupId": group_id}
-        return self._request("POST", "/setGroupPicture", data=data, files=files)
+        return self._request("POST", "/setGroupPicture", data=data, files=files, messenger=messenger)
 
     # --- Read mark ---
-    def read_chat(self, chat_id: str, id_message: Optional[str] = None) -> Dict[str, bool]:
+    def read_chat(self, chat_id: str, id_message: Optional[str] = None, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Mark chat messages as read."""
         request_data = {"chatId": chat_id}
         if id_message:
             request_data["idMessage"] = id_message
-        return self._request("POST", "/readChat", json_data=request_data)
+        return self._request("POST", "/readChat", json_data=request_data, messenger=messenger)
 
     # --- Archive/Unarchive ---
-    def archive_chat(self, chat_id: str) -> Dict[str, Any]:
+    def archive_chat(self, chat_id: str, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Archive a chat."""
-        return self._request("POST", "/archiveChat", json_data={"chatId": chat_id})
+        return self._request("POST", "/archiveChat", json_data={"chatId": chat_id}, messenger=messenger)
 
-    def unarchive_chat(self, chat_id: str) -> Dict[str, Any]:
+    def unarchive_chat(self, chat_id: str, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Unarchive a chat."""
-        return self._request("POST", "/unarchiveChat", json_data={"chatId": chat_id})
+        return self._request("POST", "/unarchiveChat", json_data={"chatId": chat_id}, messenger=messenger)
 
     # --- Message deletion ---
-    def delete_message(self, chat_id: str, id_message: str) -> Dict[str, Any]:
+    def delete_message(self, chat_id: str, id_message: str, messenger: Optional[str] = None) -> Dict[str, Any]:
         """Delete a message."""
-        return self._request("POST", "/deleteMessage", json_data={"chatId": chat_id, "idMessage": id_message})
+        return self._request("POST", "/deleteMessage", json_data={"chatId": chat_id, "idMessage": id_message}, messenger=messenger)
 
     # --- Queue methods ---
-    def clear_messages_queue(self) -> Dict[str, bool]:
+    def clear_messages_queue(self, messenger: Optional[str] = None) -> Dict[str, bool]:
         """Clear all pending messages from the sending queue."""
-        return self._request("GET", "/clearMessagesQueue")
+        return self._request("GET", "/clearMessagesQueue", messenger=messenger)
 
-    def show_messages_queue(self) -> List[Dict[str, Any]]:
+    def show_messages_queue(self, messenger: Optional[str] = None) -> List[Dict[str, Any]]:
         """Show messages currently in the sending queue."""
-        return self._request("GET", "/showMessagesQueue")
+        return self._request("GET", "/showMessagesQueue", messenger=messenger)
 
     # --- Journal methods ---
-    def last_outgoing_messages(self, minutes: int = 1440) -> List[Dict[str, Any]]:
+    def last_outgoing_messages(self, minutes: int = 1440, messenger: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get last outgoing messages."""
         params = {"minutes": minutes} if minutes != 1440 else None
-        return self._request("GET", "/lastOutgoingMessages", params=params)
+        return self._request("GET", "/lastOutgoingMessages", params=params, messenger=messenger)
 
-    def last_incoming_messages(self, minutes: int = 1440) -> List[Dict[str, Any]]:
+    def last_incoming_messages(self, minutes: int = 1440, messenger: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get last incoming messages."""
         params = {"minutes": minutes} if minutes != 1440 else None
-        return self._request("GET", "/lastIncomingMessages", params=params)
+        return self._request("GET", "/lastIncomingMessages", params=params, messenger=messenger)
 
     # --- Static instance management methods ---
     @staticmethod
@@ -604,6 +630,71 @@ class SDKWA:
         response.raise_for_status()
         return response.json()
 
+    # Telegram-specific methods
+    
+    def create_app(
+        self,
+        title: str,
+        short_name: str,
+        url: str,
+        description: str,
+        messenger: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Create Telegram application (typically used with messenger='telegram').
+        
+        Args:
+            title: Application title
+            short_name: Application short name
+            url: Application URL
+            description: Application description
+            messenger: Messenger type ('whatsapp' or 'telegram'), uses default if not specified
+            
+        Returns:
+            dict: Response containing the created app ID
+        """
+        request_data = {
+            "title": title,
+            "shortName": short_name,
+            "url": url,
+            "description": description
+        }
+        
+        return self._request("POST", "/createApp", json_data=request_data, messenger=messenger)
+    
+    def send_confirmation_code(self, phone_number: int, messenger: Optional[str] = None) -> Dict[str, Any]:
+        """Send confirmation code for Telegram authorization (typically used with messenger='telegram').
+        
+        Args:
+            phone_number: Phone number to send confirmation code to
+            messenger: Messenger type ('whatsapp' or 'telegram'), uses default if not specified
+            
+        Returns:
+            dict: Response indicating if code was sent
+        """
+        return self._request(
+            "POST",
+            "/sendConfirmationCode",
+            json_data={"phoneNumber": phone_number},
+            messenger=messenger
+        )
+    
+    def sign_in_with_confirmation_code(self, code: str, messenger: Optional[str] = None) -> Dict[str, Any]:
+        """Sign in with confirmation code for Telegram (typically used with messenger='telegram').
+        
+        Args:
+            code: Confirmation code received via SMS or app
+            messenger: Messenger type ('whatsapp' or 'telegram'), uses default if not specified
+            
+        Returns:
+            dict: Response indicating if sign in was successful
+        """
+        return self._request(
+            "POST",
+            "/signInWithConfirmationCode",
+            json_data={"code": code},
+            messenger=messenger
+        )
+    
     def close(self) -> None:
         """Close the client and cleanup resources."""
         self.session.close()

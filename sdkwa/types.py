@@ -265,3 +265,40 @@ class AccountSettings(TypedDict, total=False):
     proxyInstance: Optional[str]
     sendFromUTC: Optional[str]
     sendToUTC: Optional[str]
+
+
+# Telegram-specific types
+class CreateAppRequest(TypedDict):
+    """Create Telegram app request parameters."""
+    title: str
+    shortName: str
+    url: str
+    description: str
+
+
+class CreateAppResponse(TypedDict):
+    """Create Telegram app response."""
+    result: bool
+    data: Dict[str, Any]
+
+
+class SendConfirmationCodeRequest(TypedDict):
+    """Send Telegram confirmation code request parameters."""
+    phoneNumber: int
+
+
+class SendConfirmationCodeResponse(TypedDict):
+    """Send Telegram confirmation code response."""
+    result: bool
+    message: str
+
+
+class SignInWithConfirmationCodeRequest(TypedDict):
+    """Sign in with Telegram confirmation code request parameters."""
+    code: str
+
+
+class SignInWithConfirmationCodeResponse(TypedDict):
+    """Sign in with Telegram confirmation code response."""
+    result: bool
+    message: str

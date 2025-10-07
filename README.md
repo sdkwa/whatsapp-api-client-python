@@ -1,15 +1,16 @@
-# SDKWA WhatsApp API Client - Python SDK
+# SDKWA Messenger API Client - Python SDK
 
 [![PyPI version](https://badge.fury.io/py/sdkwa-whatsapp-api-client.svg)](https://badge.fury.io/py/sdkwa-whatsapp-api-client)
 [![Python](https://img.shields.io/pypi/pyversions/sdkwa-whatsapp-api-client.svg)](https://pypi.org/project/sdkwa-whatsapp-api-client/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Python SDK for the SDKWA WhatsApp HTTP API. Send messages, files, and manage WhatsApp accounts programmatically.
+Python SDK for the SDKWA Messenger HTTP API. Send messages, files, and manage WhatsApp and Telegram accounts programmatically.
 
 ## Features
 
 - 🚀 **Simple & Modern**: Clean, type-safe API following Python best practices
-- 📱 **Full API Coverage**: Support for all SDKWA WhatsApp API endpoints
+- 📱 **Multi-Messenger Support**: Support for both WhatsApp and Telegram
+- 📡 **Full API Coverage**: Support for all SDKWA API endpoints
 - 🔒 **Type Safe**: Complete type hints for better development experience
 - 🪝 **Webhook Support**: Built-in webhook handling for real-time notifications
 - 📁 **File Handling**: Send files by URL or upload with automatic type detection
@@ -24,10 +25,38 @@ pip install sdkwa-whatsapp-api-client
 
 ## Quick Start
 
+### Step 1: Authorize Your Account (Scan QR Code)
+
+Before you can send or receive messages, you need to authorize your WhatsApp account by scanning a QR code:
+
 ```python
 from sdkwa import SDKWA
 
 # Initialize the client
+client = SDKWA(
+    id_instance="YOUR_INSTANCE_ID",
+    api_token_instance="YOUR_API_TOKEN"
+)
+
+# Get QR code for authorization
+qr_data = client.get_qr()
+print(f"QR Code: {qr_data['message']}")  # Display this QR code
+print(f"Scan this QR code with your WhatsApp mobile app")
+
+# Check authorization state
+state = client.get_state_instance()
+print(f"Account state: {state['stateInstance']}")
+# Wait until state is "authorized" before sending messages
+```
+
+### Step 2: Send and Receive Messages
+
+Once your account is authorized (QR code is scanned), you can start sending messages:
+
+```python
+from sdkwa import SDKWA
+
+# Initialize the client (WhatsApp is the default messenger)
 client = SDKWA(
     id_instance="YOUR_INSTANCE_ID",
     api_token_instance="YOUR_API_TOKEN"
@@ -51,6 +80,43 @@ response = client.send_file_by_url(
 # Get account state
 state = client.get_state_instance()
 print(f"Account state: {state['stateInstance']}")
+```
+
+### Using Telegram
+
+For Telegram, you need to authorize using a confirmation code instead of QR:
+
+```python
+from sdkwa import SDKWA
+
+# Create client and use messenger parameter for Telegram calls
+client = SDKWA(
+    id_instance="YOUR_INSTANCE_ID",
+    api_token_instance="YOUR_API_TOKEN"
+)
+
+# Step 1: Authorize with Telegram
+# Send confirmation code to your phone number
+client.send_confirmation_code(phone_number=1234567890, messenger="telegram")
+
+# Step 2: Enter the code you received
+client.sign_in_with_confirmation_code(code="YOUR_CODE", messenger="telegram")
+
+# Step 3: Now you can send messages
+response = client.send_message(
+    chat_id="1234567890",
+    message="Hello from SDKWA Telegram! 👋",
+    messenger="telegram"
+)
+
+# Telegram-specific methods
+app = client.create_app(
+    title="My App",
+    short_name="myapp",
+    url="https://myapp.com",
+    description="My awesome Telegram app",
+    messenger="telegram"
+)
 ```
 
 ## API Reference
@@ -312,6 +378,35 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
+## Telegram-Specific Methods
+
+The SDK provides special methods for Telegram messenger:
+
+### Create Telegram App
+
+```python
+# Create a Telegram Business app
+app = client.create_app(
+    title="My Business App",
+    short_name="mybusiness",
+    url="https://mybusiness.com",
+    description="Official business application"
+)
+print(f"App created with ID: {app['data']['appId']}")
+```
+
+### Telegram Authorization
+
+```python
+# Send confirmation code to phone number
+response = client.send_confirmation_code(phone_number=79001234567)
+print(f"Confirmation code sent: {response['message']}")
+
+# Sign in with the received code
+result = client.sign_in_with_confirmation_code(code="JpkyJeAM8dQ")
+print(f"Sign in successful: {result['message']}")
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -320,6 +415,7 @@ if __name__ == '__main__':
 export SDKWA_ID_INSTANCE="your_instance_id"
 export SDKWA_API_TOKEN="your_api_token"
 export SDKWA_API_HOST="https://api.sdkwa.pro"  # Optional
+export SDKWA_MESSENGER="whatsapp"  # Optional: 'whatsapp' or 'telegram', defaults to 'whatsapp'
 ```
 
 ### Constructor Options
@@ -329,6 +425,7 @@ client = SDKWA(
     id_instance="your_instance_id",
     api_token_instance="your_api_token",
     api_host="https://api.sdkwa.pro",  # Optional, defaults to official API
+    messenger="whatsapp",  # Optional: 'whatsapp' or 'telegram', defaults to 'whatsapp'
     user_id="your_user_id",  # Optional, for additional authentication
     user_token="your_user_token",  # Optional, for additional authentication
     timeout=30,  # Request timeout in seconds
